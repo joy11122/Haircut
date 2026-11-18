@@ -25,7 +25,7 @@ export function parseRateLimitResult(value: unknown): { count: number; resetInSe
   return { count, resetInSeconds };
 }
 
-export async function checkSharedRateLimit(userId: string, maxRequests = RATE_LIMIT_MAX_REQUESTS) {
+export async function checkSharedRateLimit(userId: string, maxRequests = RATE_LIMIT_MAX_REQUESTS, bucket = 'generate') {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
@@ -55,7 +55,7 @@ export async function checkSharedRateLimit(userId: string, maxRequests = RATE_LI
         'EVAL',
         RATE_LIMIT_SCRIPT,
         '1',
-        `haircut:ai-generation:${userId}`,
+        `haircut:${bucket}:${userId}`,
         String(RATE_LIMIT_WINDOW_SECONDS),
       ]),
       cache: 'no-store',
