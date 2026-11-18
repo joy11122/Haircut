@@ -123,7 +123,7 @@ export async function createGenerationEvent(userId: string) {
 
 export async function updateGenerationEvent(
   id: ObjectId,
-  update: { status: 'submitted' | 'failed'; predictionId?: string },
+  update: { status: 'submitted' | 'completed' | 'failed'; predictionId?: string },
 ) {
   const database = await getDatabase();
   await database.collection('ai_generation_events').updateOne(
