@@ -1,0 +1,1 @@
+export default function Loading(){return <main className="container grid min-h-[65vh] place-items-center"><div className="text-center"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#D8D5CA] border-t-[#68745B]"/><p className="mt-5 text-[11px] font-semibold tracking-[.16em] text-[#77796F]">PREPARING YOUR EXPERIENCE</p></div></main>}
