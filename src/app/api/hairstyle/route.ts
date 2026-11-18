@@ -7,24 +7,6 @@ export const maxDuration = 60;
 const REPLICATE_API = 'https://api.replicate.com/v1';
 const MAX_IMAGE_BYTES = 240_000;
 const PREDICTION_ID_PATTERN = /^[a-z0-9]{20,40}$/i;
-const recentRequests = new Map<string, number[]>();
-
-function isRateLimited(request: Request): boolean {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const key = request.headers.get('x-real-ip') || forwarded || 'unknown';
-  const now = Date.now();
-  const recent = (recentRequests.get(key) ?? []).filter((timestamp) => now - timestamp < 10 * 60 * 1000);
-  if (recent.length >= 3) return true;
-  recent.push(now);
-  recentRequests.set(key, recent);
-  if (recentRequests.size > 500) {
-    for (const [entry, timestamps] of recentRequests) {
-      if (timestamps.every((timestamp) => now - timestamp >= 10 * 60 * 1000)) recentRequests.delete(entry);
-    }
-  }
-  return false;
-}
-
 type ReplicatePrediction = {
   id?: string;
   status?: string;
@@ -51,6 +33,9 @@ export async function POST(request: Request) {
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return jsonError('AI hairstyle preview is not configured yet. Add REPLICATE_API_TOKEN to the server environment.', 503);
 
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > 380_000) return jsonError('The optimized portrait request is too large.', 413);
+
   let body: unknown;
   try {
     body = await request.json();
@@ -73,7 +58,7 @@ export async function POST(request: Request) {
   const base64 = match[2];
   const imageBytes = Math.floor((base64.length * 3) / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
   if (imageBytes < 1 || imageBytes > MAX_IMAGE_BYTES) {
-    return jsonError('The optimized portrait must be smaller than 1 MB. Please choose another photo.', 413);
+    return jsonError('The optimized portrait must be smaller than 240 KB. Please choose another photo.', 413);
   }
 
   try {

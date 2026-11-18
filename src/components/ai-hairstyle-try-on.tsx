@@ -3,7 +3,8 @@
 /* eslint-disable @next/next/no-img-element -- local blob and temporary provider output URLs are rendered directly. */
 
 import { useState } from 'react';
-import { AlertCircle, Download, LoaderCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, Bookmark, Download, LoaderCircle, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { AI_HAIRSTYLES, type AiHairstyleId } from '@/lib/ai-hairstyle';
 
 type Props = { imageUrl: string };
@@ -39,6 +40,10 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
   const [state, setState] = useState<PreviewState>('idle');
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [saveConsent, setSaveConsent] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [signInRequired, setSignInRequired] = useState(false);
 
   const selected = AI_HAIRSTYLES.find((style) => style.id === styleId) ?? AI_HAIRSTYLES[0];
   const busy = state === 'preparing' || state === 'generating' || state === 'polling';
@@ -47,6 +52,9 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
     if (!consent || busy) return;
     setError('');
     setResultUrl(null);
+    setSaved(false);
+    setSaveConsent(false);
+    setSignInRequired(false);
     setState('preparing');
 
     try {
@@ -85,6 +93,31 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Something went wrong. Please try again.');
       setState('error');
+    }
+  }
+
+  async function saveResult() {
+    if (!resultUrl || !saveConsent || saving || saved) return;
+    setSaving(true);
+    setError('');
+    setSignInRequired(false);
+    try {
+      const response = await fetch('/api/looks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ styleId, imageUrl: resultUrl }),
+      });
+      const data = await response.json() as { error?: string };
+      if (response.status === 401) {
+        setSignInRequired(true);
+        throw new Error('Sign in to save this hairstyle to your private library.');
+      }
+      if (!response.ok) throw new Error(data.error || 'Could not save this hairstyle.');
+      setSaved(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not save this hairstyle.');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -148,6 +181,17 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <button type="button" onClick={downloadResult} className="btn-primary"><Download size={14}/> Download result</button>
                 <a href={resultUrl} target="_blank" rel="noreferrer" className="btn-secondary">Open full image</a>
+              </div>
+              <div className="mt-5 w-full max-w-lg rounded border border-[#E5E2D9] bg-white p-4 text-left">
+                <label className="flex cursor-pointer items-start gap-3 text-[10px] leading-5 text-[#77796F]">
+                  <input type="checkbox" checked={saveConsent} onChange={(event) => setSaveConsent(event.target.checked)} disabled={saving || saved} className="mt-1 h-4 w-4 accent-[#68745B]"/>
+                  <span>I agree to store this generated hairstyle image in my private account library using secure cloud image storage. I can delete it later.</span>
+                </label>
+                <button type="button" onClick={saveResult} disabled={!saveConsent || saving || saved} className="btn-secondary mt-3 w-full disabled:cursor-not-allowed disabled:opacity-40">
+                  {saving ? <><LoaderCircle size={14} className="animate-spin"/> Saving securely…</> : saved ? <><Bookmark size={14}/> Saved to your library</> : <><Bookmark size={14}/> Save to my looks</>}
+                </button>
+                {signInRequired && <Link href="/sign-in?callbackUrl=/looks" className="mt-3 inline-flex text-[10px] font-semibold text-[#68745B] underline underline-offset-4">Sign in with Google to continue</Link>}
+                <p className="mt-2 text-[9px] leading-4 text-[#92938B]">Saving requires an account and configured cloud storage.</p>
               </div>
               <p className="mt-3 text-[9px] text-[#92938B]">AI-generated preview · Not a guarantee of the final haircut.</p>
             </>

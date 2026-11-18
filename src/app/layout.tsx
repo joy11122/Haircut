@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { SiteHeader } from '@/components/site-header';
+import { Providers } from '@/app/providers';
 
 export const metadata: Metadata = {
   title: 'Haircut — Find the look that feels like you',
@@ -10,5 +11,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><SiteHeader />{children}</body></html>;
+  return <html lang="en"><body><Providers><SiteHeader />{children}</Providers></body></html>;
 }
