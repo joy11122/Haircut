@@ -114,7 +114,16 @@ export function PhotoStudio() {
               <div className="relative w-full">
                 {/* A blob URL is intentionally rendered locally; it is not a remote image source. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img ref={imageRef} src={preview} alt="Your uploaded portrait preview" onLoad={() => { setIsImageReady(true); setError(''); }} onError={() => { setIsImageReady(false); setError('This image could not be previewed. Please choose another photo.'); }} className="mx-auto max-h-[320px] max-w-full rounded object-contain"/>
+                <img ref={imageRef} src={preview} alt="Your uploaded portrait preview" onLoad={(event) => {
+                  const image = event.currentTarget;
+                  if (image.naturalWidth * image.naturalHeight > 24000000) {
+                    setIsImageReady(false);
+                    setError('This photo has very high resolution. Please choose an image under 24 megapixels.');
+                    return;
+                  }
+                  setIsImageReady(true);
+                  setError('');
+                }} onError={() => { setIsImageReady(false); setError('This image could not be previewed. Please choose another photo.'); }} className="mx-auto max-h-[320px] max-w-full rounded object-contain"/>
                 <button onClick={reset} type="button" aria-label="Remove uploaded photo" className="absolute right-1 top-1 grid h-9 w-9 place-items-center rounded-full bg-[#20231F] text-white"><X size={16}/></button>
                 <p className="mt-3 truncate text-[11px] text-[#77796F]">{fileName}</p>
                 <button type="button" onClick={() => inputRef.current?.click()} className="mt-2 text-[11px] font-semibold text-[#68745B] underline underline-offset-4">Choose a different photo</button>
@@ -146,7 +155,7 @@ export function PhotoStudio() {
               </div>
               <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
                 <div><p className="display text-[38px] leading-none">{shape}</p><p className="mt-2 text-[11px] text-[#77796F]">Detected: {analysis.shape}</p></div>
-                <div className="text-right"><p className="text-[23px] font-semibold tracking-[-.05em]">{analysis.confidence}%</p><p className="text-[9px] uppercase tracking-[.14em] text-[#85867D]">Heuristic confidence</p></div>
+                <div className="text-right"><p className="text-[23px] font-semibold tracking-[-.05em]">{analysis.confidence}%</p><p className="text-[9px] uppercase tracking-[.14em] text-[#85867D]">Heuristic fit</p></div>
               </div>
               <p className="mt-4 text-[12px] leading-6 text-[#686B61]">{analysis.explanation}</p>
               <label className="mt-5 block text-[10px] font-semibold uppercase tracking-[.12em] text-[#77796F]" htmlFor="face-shape-correction">Does this look right?</label>
