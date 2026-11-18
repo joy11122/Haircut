@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 function SignInContent() {
   const searchParams = useSearchParams();
   const requestedCallback = searchParams.get('callbackUrl') || '/looks';
-  const callbackUrl = requestedCallback.startsWith('/') && !requestedCallback.startsWith('//') && !requestedCallback.includes('\\\\')
+  const callbackUrl = requestedCallback.startsWith('/') && !requestedCallback.startsWith('//') && !requestedCallback.includes('\\')
     ? requestedCallback
     : '/looks';
 
