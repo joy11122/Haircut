@@ -56,7 +56,8 @@ export function classifyFaceLandmarks(points: FaceLandmarkPoint[]): FaceAnalysis
     shape = 'Heart';
     confidence = 74;
     explanation = 'Your upper face appears broader than your jaw, creating a tapered lower outline.';
-  } else if (cheekWidth > foreheadWidth * 1.08 && cheekWidth > jawWidth * 1.12) {
+  } else if (foreheadToCheek <= 0.78 && jawToCheek <= 0.72 &&
+      cheekWidth > foreheadWidth * 1.15 && cheekWidth > jawWidth * 1.15) {
     shape = 'Diamond';
     confidence = 72;
     explanation = 'Your cheek area appears widest, while the forehead and jaw taper inward.';
