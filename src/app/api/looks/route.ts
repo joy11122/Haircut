@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { auth } from '../../../../auth';
 import { AI_HAIRSTYLES } from '@/lib/ai-hairstyle';
-import { getSavedLooksCollection, isStorageConfigured, storeGeneratedImage } from '@/lib/saved-looks';
+import { deleteCloudinaryImage, getSavedLooksCollection, isStorageConfigured, storeGeneratedImage } from '@/lib/saved-looks';
 import { saveLookSchema } from '@/lib/saved-look-validation';
 
 export const runtime = 'nodejs';
@@ -40,6 +40,9 @@ export async function POST(request: Request) {
   if (!session?.user?.id) return errorResponse('Sign in before saving a hairstyle.', 401);
   if (!isStorageConfigured()) return errorResponse('Image storage is not configured yet. Add the Cloudinary server credentials.', 503);
 
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > 8192) return errorResponse('The save request is too large.', 413);
+
   let body: unknown;
   try {
     body = await request.json();
@@ -53,12 +56,14 @@ export async function POST(request: Request) {
   const style = AI_HAIRSTYLES.find((item) => item.id === parsed.data.styleId);
   if (!style) return errorResponse('That hairstyle is not supported.', 400);
 
+  let uploadedPublicId: string | null = null;
   try {
     const collection = await getSavedLooksCollection();
     const count = await collection.countDocuments({ userId: session.user.id });
     if (count >= 50) return errorResponse('Your library is full. Delete a saved look before adding another.', 409);
 
     const stored = await storeGeneratedImage(parsed.data.imageUrl, style.id);
+    uploadedPublicId = stored.publicId;
     const saved = {
       _id: new ObjectId(),
       userId: session.user.id,
@@ -80,6 +85,7 @@ export async function POST(request: Request) {
       },
     }, { status: 201, headers: { 'Cache-Control': 'private, no-store' } });
   } catch {
+    if (uploadedPublicId) await deleteCloudinaryImage(uploadedPublicId).catch(() => undefined);
     return errorResponse('Could not save this hairstyle. Please try again.', 502);
   }
 }
