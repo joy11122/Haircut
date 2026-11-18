@@ -6,6 +6,11 @@ import {
   UploadCloud, X,
 } from 'lucide-react';
 import { analyzeFaceShape, FACE_SHAPES, type FaceAnalysis, type FaceShape } from '@/lib/face-analysis';
+import {
+  BEARD_PREFERENCES, HAIR_LENGTHS, HAIR_TEXTURES, MAINTENANCE_LEVELS, STYLE_VIBES,
+  getStyleRecommendations,
+  type BeardPreference, type HairLength, type HairTexture, type MaintenanceLevel, type StyleVibe,
+} from '@/lib/style-recommendations';
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -24,6 +29,11 @@ export function PhotoStudio() {
   const [selectedShape, setSelectedShape] = useState<FaceShape | ''>('');
   const [isDragging, setIsDragging] = useState(false);
   const [isImageReady, setIsImageReady] = useState(false);
+  const [hairTexture, setHairTexture] = useState<HairTexture>('Wavy');
+  const [hairLength, setHairLength] = useState<HairLength>('Short');
+  const [maintenance, setMaintenance] = useState<MaintenanceLevel>('Low');
+  const [vibe, setVibe] = useState<StyleVibe>('Modern');
+  const [beardPreference, setBeardPreference] = useState<BeardPreference>('Recommend for me');
 
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
@@ -83,6 +93,9 @@ export function PhotoStudio() {
   }
 
   const shape = selectedShape || analysis?.shape || '';
+  const recommendations = analysis ? getStyleRecommendations(shape as FaceShape, {
+    hairTexture, hairLength, maintenance, vibe, beard: beardPreference,
+  }) : null;
 
   return <section id="try-it" className="scroll-mt-24">
     <div className="soft-card overflow-hidden">
@@ -169,6 +182,76 @@ export function PhotoStudio() {
               </div>
             </div>
           )}
+          
+            {recommendations && (
+              <section aria-live="polite" className="mt-8 border-t border-[#E5E2D9] pt-7">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div><span className="eyebrow">Step 02 / Your style edit</span><h3 className="display mt-2 text-[32px] leading-none">Looks picked for <i>you.</i></h3></div>
+                  <span className="rounded-full bg-[#E9EAE2] px-3 py-1.5 text-[10px] font-semibold text-[#68745B]">{shape} face shape</span>
+                </div>
+                <p className="mt-3 text-[12px] leading-6 text-[#77796F]">Fine-tune your preferences. Your recommendations update instantly and stay on this device.</p>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <label className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#77796F]">Hair texture
+                    <select value={hairTexture} onChange={event => setHairTexture(event.target.value as HairTexture)} className="mt-2 min-h-11 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] normal-case tracking-normal text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
+                      {HAIR_TEXTURES.map(option => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#77796F]">Preferred length
+                    <select value={hairLength} onChange={event => setHairLength(event.target.value as HairLength)} className="mt-2 min-h-11 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] normal-case tracking-normal text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
+                      {HAIR_LENGTHS.map(option => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#77796F]">Daily maintenance
+                    <select value={maintenance} onChange={event => setMaintenance(event.target.value as MaintenanceLevel)} className="mt-2 min-h-11 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] normal-case tracking-normal text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
+                      {MAINTENANCE_LEVELS.map(option => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#77796F]">Style direction
+                    <select value={vibe} onChange={event => setVibe(event.target.value as StyleVibe)} className="mt-2 min-h-11 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] normal-case tracking-normal text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
+                      {STYLE_VIBES.map(option => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-[10px] font-semibold uppercase tracking-[.12em] text-[#77796F] sm:col-span-2">Beard preference
+                    <select value={beardPreference} onChange={event => setBeardPreference(event.target.value as BeardPreference)} className="mt-2 min-h-11 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] normal-case tracking-normal text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
+                      {BEARD_PREFERENCES.map(option => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="mt-8 flex items-center justify-between gap-3">
+                  <h4 className="text-[14px] font-semibold tracking-[-.03em]">Your top 3 haircuts</h4>
+                  <span className="text-[9px] uppercase tracking-[.14em] text-[#85867D]">Personalized shortlist</span>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {recommendations.hair.map((style, index) => (
+                    <article key={style.id} className="rounded-[4px] border border-[#E5E2D9] bg-white p-4 sm:p-5">
+                      <div className="flex items-start gap-4">
+                        <span className="display text-[25px] leading-none text-[#B58B5B]">0{index + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h5 className="text-[14px] font-semibold">{style.name}</h5>
+                            <span className="rounded-full bg-[#EEF0E8] px-2.5 py-1 text-[9px] font-semibold text-[#68745B]">{style.maintenance} upkeep</span>
+                          </div>
+                          <p className="mt-2 text-[11px] leading-6 text-[#77796F]">{style.description}</p>
+                          <p className="mt-3 text-[11px] leading-5 text-[#55574F]"><span className="font-semibold">Why it fits: </span>{style.reason}</p>
+                          <div className="mt-3 border-t border-[#EAE9E1] pt-3"><p className="text-[9px] font-bold uppercase tracking-[.14em] text-[#68745B]">Tell your barber</p><p className="mt-1 text-[11px] leading-5 text-[#77796F]">{style.barberNote}</p></div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="mt-7 rounded-[4px] bg-[#20231F] p-5 text-[#F5F3ED] sm:p-6">
+                  <div className="flex items-center justify-between gap-3"><span className="eyebrow !text-[#C7B18D]">Complete the look</span><span className="text-[9px] uppercase tracking-[.14em] text-white/45">Beard edit</span></div>
+                  <h4 className="display mt-3 text-[29px]">{recommendations.beard.name}</h4>
+                  <p className="mt-2 text-[11px] leading-6 text-white/65">{recommendations.beard.description}</p>
+                  <p className="mt-3 text-[11px] leading-5 text-white/75"><span className="font-semibold text-[#C7B18D]">Why it fits: </span>{recommendations.beard.reason}</p>
+                  <div className="mt-4 border-t border-white/15 pt-4"><p className="text-[9px] font-bold uppercase tracking-[.14em] text-[#C7B18D]">Barber / barber-stylist note</p><p className="mt-1 text-[11px] leading-5 text-white/65">{recommendations.beard.barberNote}</p></div>
+                </div>
+                <p className="mt-4 text-[10px] leading-5 text-[#92938B]">Style suggestions are educational starting points, not guaranteed outcomes. Hair density, growth pattern, lifestyle and your barber’s assessment also matter.</p>
+              </section>
+            )}
+
         </div>
       </div>
     </div>
