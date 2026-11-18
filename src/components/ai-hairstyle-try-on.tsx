@@ -12,7 +12,7 @@ async function optimizePortrait(imageUrl: string): Promise<string> {
   if (!response.ok) throw new Error('Could not read your selected portrait.');
   const source = await createImageBitmap(await response.blob());
   try {
-    const scale = Math.min(1, 1024 / Math.max(source.width, source.height));
+    const scale = Math.min(1, 768 / Math.max(source.width, source.height));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(source.width * scale));
     canvas.height = Math.max(1, Math.round(source.height * scale));
@@ -20,10 +20,10 @@ async function optimizePortrait(imageUrl: string): Promise<string> {
     if (!context) throw new Error('Your browser cannot prepare this photo.');
     context.drawImage(source, 0, 0, canvas.width, canvas.height);
 
-    for (const quality of [0.82, 0.72, 0.62, 0.52]) {
+    for (const quality of [0.82, 0.72, 0.62, 0.52, 0.42]) {
       const dataUrl = canvas.toDataURL('image/jpeg', quality);
       const encoded = dataUrl.split(',')[1] ?? '';
-      if (Math.floor(encoded.length * 0.75) <= 950_000) return dataUrl;
+      if (Math.floor(encoded.length * 0.75) <= 225_000) return dataUrl;
     }
     throw new Error('This photo could not be compressed enough. Please choose a smaller image.');
   } finally {
