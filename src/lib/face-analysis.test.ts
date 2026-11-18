@@ -39,6 +39,10 @@ describe('classifyFaceLandmarks', () => {
     expect(classifyFaceLandmarks(makeLandmarks(0.8, 0.5, 0.4)).shape).toBe('Oval');
   });
 
+  it('rejects incomplete landmark arrays', () => {
+    expect(() => classifyFaceLandmarks([])).toThrow(/landmarks were incomplete/i);
+  });
+
   it('rejects degenerate landmark measurements', () => {
     const points = makeLandmarks(0.8, 0.5, 0.4);
     points[234] = points[454];
