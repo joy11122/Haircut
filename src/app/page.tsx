@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ScanFace, Sparkles, Waves } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUpRight, ScanFace, Sparkles, Waves } from 'lucide-react';
 import { PhotoStudio } from '@/components/photo-studio';
 
 const benefits = [
