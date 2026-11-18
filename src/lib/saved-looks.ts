@@ -14,7 +14,6 @@ export type SavedLook = {
   userId: string;
   styleId: string;
   styleName: string;
-  imageUrl: string;
   cloudinaryPublicId: string;
   favorite: boolean;
   createdAt: Date;
@@ -58,9 +57,21 @@ export async function storeGeneratedImage(imageUrl: string, styleId: string) {
     folder: 'haircut/saved-looks',
     public_id: `${styleId}-${new ObjectId().toString()}`,
     resource_type: 'image',
+    type: 'authenticated',
     overwrite: false,
     unique_filename: false,
   });
 
-  return { secureUrl: upload.secure_url, publicId: upload.public_id };
+  return { publicId: upload.public_id };
+}
+
+export function getPrivateImageDeliveryUrl(publicId: string) {
+  if (!isStorageConfigured()) throw new Error('Image storage is not configured.');
+  return cloudinary.url(publicId, {
+    secure: true,
+    resource_type: 'image',
+    type: 'authenticated',
+    sign_url: true,
+    format: 'jpg',
+  });
 }
