@@ -14,14 +14,14 @@ export type FaceAnalysis = {
   };
 };
 
-type Point = { x: number; y: number; z?: number };
+export type FaceLandmarkFaceLandmarkPoint = { x: number; y: number; z?: number };
 
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
 const WASM_URL =
   'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm';
 
-function distance(a: Point, b: Point): number {
+function distance(a: FaceLandmarkPoint, b: FaceLandmarkPoint): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
@@ -29,7 +29,7 @@ function ratio(numerator: number, denominator: number): number {
   return denominator > 0 ? numerator / denominator : 0;
 }
 
-function classifyFace(points: Point[]): FaceAnalysis {
+export function classifyFaceLandmarks(points: FaceLandmarkPoint[]): FaceAnalysis {
   // MediaPipe Face Mesh landmark positions: forehead, chin, cheekbones,
   // temples and jaw corners. Ratios are approximate visual heuristics.
   const foreheadWidth = distance(points[127], points[356]);
@@ -102,11 +102,11 @@ export async function analyzeFaceShape(image: HTMLImageElement): Promise<FaceAna
     if (faces.length > 1) {
       throw new Error('More than one face was found. Please upload a photo with only you in it.');
     }
-    const points = faces[0] as Point[];
+    const points = faces[0] as FaceLandmarkPoint[];
     if (points.length < 455) {
       throw new Error('The face landmarks were incomplete. Please try another photo.');
     }
-    return classifyFace(points);
+    return classifyFaceLandmarks(points);
   } finally {
     landmarker.close();
   }
