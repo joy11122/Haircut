@@ -30,10 +30,6 @@ export function PhotoStudio() {
   }, [preview]);
 
   function acceptFile(file?: File) {
-    setError('');
-    setAnalysis(null);
-    setSelectedShape('');
-    setIsImageReady(false);
     if (!file) return;
     if (!ACCEPTED_TYPES.includes(file.type)) {
       setError('Please choose a JPG, PNG or WebP image.');
@@ -43,6 +39,11 @@ export function PhotoStudio() {
       setError('Your photo must be smaller than 8 MB.');
       return;
     }
+    setError('');
+    setAnalysis(null);
+    setSelectedShape('');
+    setIsImageReady(false);
+    setConsent(false);
     setPreview(URL.createObjectURL(file));
     setFileName(file.name);
     setStage('ready');
