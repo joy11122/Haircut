@@ -137,7 +137,8 @@ export async function POST(request: Request) {
       return jsonError('The AI provider returned an invalid prediction response.', 502);
     }
 
-    await updateGenerationEvent(eventId, { status: 'submitted', predictionId: prediction.id });
+    const finalStatus = prediction.status === 'succeeded' ? 'completed' : prediction.status === 'failed' || prediction.status === 'canceled' ? 'failed' : 'submitted';
+    await updateGenerationEvent(eventId, { status: finalStatus, predictionId: prediction.id });
     return NextResponse.json({
       id: prediction.id,
       status: prediction.status ?? 'starting',
@@ -189,6 +190,9 @@ export async function GET(request: Request) {
     if (prediction.status === 'succeeded' && !imageUrl) {
       return jsonError('The AI provider did not return a valid image.', 502);
     }
+
+    if (prediction.status === 'succeeded') await updateGenerationEvent(event._id as ObjectId, { status: 'completed' });
+    if (prediction.status === 'failed' || prediction.status === 'canceled') await updateGenerationEvent(event._id as ObjectId, { status: 'failed' });
 
     return NextResponse.json({
       id: prediction.id,
