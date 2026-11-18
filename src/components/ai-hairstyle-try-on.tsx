@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element -- local blob and temporary provider output URLs are rendered directly. */
+
 import { useState } from 'react';
 import { AlertCircle, Download, LoaderCircle, Sparkles } from 'lucide-react';
 import { AI_HAIRSTYLES, type AiHairstyleId } from '@/lib/ai-hairstyle';
