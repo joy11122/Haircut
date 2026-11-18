@@ -23,9 +23,14 @@ An AI-assisted personal grooming experience that helps people explore hairstyles
 - AI image requests are made only after a separate consent checkbox; the original photo is resized and compressed locally before being sent as a temporary data URL. The app does not persist the portrait.
 - AI provider tokens remain server-side in `REPLICATE_API_TOKEN`; the API rejects arbitrary prompts, unsupported styles, invalid image types, oversized image payloads, and untrusted output URLs. A per-instance burst guard is included, but a shared distributed rate limiter and authenticated quotas are still required before a public paid launch.
 - Face-shape analysis still runs in the browser; AI hairstyle generation is a separate opt-in provider request.
+- Google sign-in with Auth.js and database-backed sessions.
+- Private saved-look library with favorites, history, per-user access checks, a 50-look limit, and image deletion.
+- Generated images are copied to Cloudinary only after a separate save consent; only generated results are stored, not the original portrait.
+- MongoDB stores account-linked saved-look metadata; ownership is enforced in every read, update and delete query.
+- A public privacy page explains browser analysis, AI-provider processing, account storage and deletion.
 
 ## Development
 
-The product is being delivered in phases. Authentication, saved looks, shared production rate limiting, and managed image storage remain separate upcoming phases. AI hairstyle generation requires a Replicate account and server-side API token. Hairstyle and beard suggestions are currently rule-based, explainable guidance rather than model-generated predictions. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
+The product is being delivered in phases. Shared distributed rate limiting, paid usage quotas, billing, and operational monitoring remain production follow-ups. Account and saved-look features require Google OAuth, MongoDB, and Cloudinary configuration. Hairstyle and beard suggestions are currently rule-based, explainable guidance rather than model-generated predictions. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
 
-Copy `.env.example` to `.env.local` and set `REPLICATE_API_TOKEN` from your Replicate account before using AI hairstyle generation. Keep this value server-only and never expose it with a `NEXT_PUBLIC_` prefix. Run `npm install`, then `npm run dev`. Validate with `npm run typecheck`, `npm run test`, `npm run lint`, and `npm run build`.
+Copy `.env.example` to `.env.local`. Configure `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `MONGODB_URI`, `MONGODB_DB_NAME`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and `REPLICATE_API_TOKEN` in your local and Vercel server environments. Register the Google OAuth callback as `https://YOUR_DOMAIN/api/auth/callback/google`. Keep every credential server-only and never expose it with a `NEXT_PUBLIC_` prefix. Without these credentials, sign-in, persistence, image storage, or AI generation will remain unavailable. Run `npm install`, then `npm run dev`. Validate with `npm run typecheck`, `npm run test`, `npm run lint`, and `npm run build`.
