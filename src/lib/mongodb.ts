@@ -4,7 +4,6 @@ const uri = process.env.MONGODB_URI;
 const options = { appName: 'haircut-ai-grooming' };
 
 declare global {
-  // eslint-disable-next-line no-var
   var haircutMongoClient: MongoClient | undefined;
 }
 
