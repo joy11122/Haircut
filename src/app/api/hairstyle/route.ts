@@ -161,7 +161,7 @@ export async function GET(request: Request) {
   const id = new URL(request.url).searchParams.get('id');
   if (!id || !PREDICTION_ID_PATTERN.test(id)) return jsonError('A valid prediction ID is required.', 400);
 
-  const rate = await checkSharedRateLimit(userId, 60);
+  const rate = await checkSharedRateLimit(userId, 60, 'poll');
   if (!rate.allowed) {
     if (!rate.configured) return jsonError('AI preview status is temporarily unavailable because shared rate limiting is not configured.', 503);
     return jsonError('Too many status checks. Please wait a moment.', 429, {
