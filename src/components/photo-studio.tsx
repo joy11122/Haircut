@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight, Check, ImagePlus, LoaderCircle, RefreshCw, ShieldCheck,
-  Sparkles, UploadCloud, X,
+  UploadCloud, X,
 } from 'lucide-react';
 import { analyzeFaceShape, FACE_SHAPES, type FaceAnalysis, type FaceShape } from '@/lib/face-analysis';
 
