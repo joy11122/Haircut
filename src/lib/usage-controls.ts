@@ -144,7 +144,7 @@ export async function findOwnedGenerationEvent(userId: string, predictionId: str
 export async function getDailyUsage(userId: string) {
   const database = await getDatabase();
   const day = utcDayKey();
-  const usage = await database.collection<{ count: number }>('ai_daily_usage').findOne({
+  const usage = await database.collection<{ _id: string; count: number }>('ai_daily_usage').findOne({
     _id: `${userId}:${day}`,
   });
   const used = usage?.count ?? 0;
