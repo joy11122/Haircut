@@ -19,10 +19,13 @@ An AI-assisted personal grooming experience that helps people explore hairstyles
 - Preference-aware top-three haircut shortlist based on face shape, hair texture, preferred length, maintenance, and style direction.
 - Beard recommendations for clean-shaven, stubble, short-beard, and full-beard preferences, with barber-ready instructions.
 - Interactive, browser-only hairstyle silhouette preview with five selectable looks and adjustable size, placement, and opacity. This is an illustrative overlay, not a photorealistic AI hairstyle transfer.
-- Face analysis runs in the browser; the portrait is not sent to the application server.
+- Consent-based photorealistic hairstyle editing through the server-side Replicate API using Google Gemini 2.5 Flash Image, with eight allowlisted styles, identity-preservation instructions, async status polling, result preview, and download.
+- AI image requests are made only after a separate consent checkbox; the original photo is resized and compressed locally before being sent as a temporary data URL. The app does not persist the portrait.
+- AI provider tokens remain server-side in `REPLICATE_API_TOKEN`; the API rejects arbitrary prompts, unsupported styles, invalid image types, oversized image payloads, and untrusted output URLs. A per-instance burst guard is included, but a shared distributed rate limiter and authenticated quotas are still required before a public paid launch.
+- Face-shape analysis still runs in the browser; AI hairstyle generation is a separate opt-in provider request.
 
 ## Development
 
-The product is being delivered in phases. Photorealistic AI hairstyle transfer, authentication, saved looks, and production image storage remain separate upcoming phases. Hairstyle and beard suggestions are currently rule-based, explainable guidance rather than model-generated predictions. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
+The product is being delivered in phases. Authentication, saved looks, shared production rate limiting, and managed image storage remain separate upcoming phases. AI hairstyle generation requires a Replicate account and server-side API token. Hairstyle and beard suggestions are currently rule-based, explainable guidance rather than model-generated predictions. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
 
-Run `npm install`, then `npm run dev`. Validate with `npm run typecheck`, `npm run test`, `npm run lint`, and `npm run build`.
+Copy `.env.example` to `.env.local` and set `REPLICATE_API_TOKEN` from your Replicate account before using AI hairstyle generation. Keep this value server-only and never expose it with a `NEXT_PUBLIC_` prefix. Run `npm install`, then `npm run dev`. Validate with `npm run typecheck`, `npm run test`, `npm run lint`, and `npm run build`.

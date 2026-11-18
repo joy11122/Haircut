@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { analyzeFaceShape, FACE_SHAPES, type FaceAnalysis, type FaceShape } from '@/lib/face-analysis';
 import { VirtualTryOn } from '@/components/virtual-try-on';
+import { AiHairstyleTryOn } from '@/components/ai-hairstyle-try-on';
 import {
   BEARD_PREFERENCES, HAIR_LENGTHS, HAIR_TEXTURES, MAINTENANCE_LEVELS, STYLE_VIBES,
   getStyleRecommendations,
@@ -254,6 +255,7 @@ export function PhotoStudio() {
             )}
 
           {preview && recommendations && <VirtualTryOn imageUrl={preview} />}
+          {preview && recommendations && <AiHairstyleTryOn imageUrl={preview} />}
         </div>
       </div>
     </div>
