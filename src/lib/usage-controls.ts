@@ -81,9 +81,10 @@ export async function reserveDailyGeneration(userId: string) {
   const day = utcDayKey();
   const id = `${userId}:${day}`;
   const collection = database.collection<{ _id: string; userId: string; day: string; count: number; updatedAt: Date }>('ai_daily_usage');
+  let reserved = false;
 
   try {
-    await collection.updateOne(
+    const result = await collection.updateOne(
       { _id: id, count: { $lt: DAILY_FREE_GENERATIONS } },
       {
         $inc: { count: 1 },
@@ -92,6 +93,7 @@ export async function reserveDailyGeneration(userId: string) {
       },
       { upsert: true },
     );
+    reserved = result.modifiedCount === 1 || result.upsertedCount === 1;
   } catch (error) {
     if (!(error && typeof error === 'object' && 'code' in error && error.code === 11000)) throw error;
   }
@@ -99,7 +101,7 @@ export async function reserveDailyGeneration(userId: string) {
   const usage = await collection.findOne({ _id: id });
   const count = usage?.count ?? 0;
   return {
-    allowed: count <= DAILY_FREE_GENERATIONS && count > 0 && usage?.updatedAt !== undefined,
+    allowed: reserved,
     used: count,
     limit: DAILY_FREE_GENERATIONS,
     remaining: Math.max(0, DAILY_FREE_GENERATIONS - count),
