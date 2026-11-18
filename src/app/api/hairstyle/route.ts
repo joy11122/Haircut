@@ -51,6 +51,9 @@ export async function POST(request: Request) {
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return jsonError('AI hairstyle preview is not configured yet. Add REPLICATE_API_TOKEN to the server environment.', 503);
 
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (contentLength > 380_000) return jsonError('The optimized portrait request is too large.', 413);
+
   let body: unknown;
   try {
     body = await request.json();
