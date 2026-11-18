@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element -- saved images use per-user Cloudinary URLs. */
+
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Heart, LoaderCircle, Scissors, Trash2 } from 'lucide-react';
