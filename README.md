@@ -18,10 +18,11 @@ An AI-assisted personal grooming experience that helps people explore hairstyles
 - Explainable heuristic face-shape classification (oval, round, square, heart, oblong, diamond), confidence indicator, and user correction.
 - Preference-aware top-three haircut shortlist based on face shape, hair texture, preferred length, maintenance, and style direction.
 - Beard recommendations for clean-shaven, stubble, short-beard, and full-beard preferences, with barber-ready instructions.
+- Interactive, browser-only hairstyle silhouette preview with selectable styles and adjustable size, vertical placement, and opacity. The preview is an illustrative overlay, not a photorealistic AI-generated hairstyle transfer.
 - Face analysis runs in the browser; the portrait is not sent to the application server.
 
 ## Development
 
-The product is being delivered in phases. Virtual hairstyle try-on, authentication, saved looks, and production image storage are separate upcoming phases. Hairstyle and beard suggestions are currently rule-based, explainable guidance rather than model-generated predictions. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
+The product is being delivered in phases. Photorealistic AI hairstyle transfer, authentication, saved looks, and production image storage remain separate upcoming phases. Hairstyle and beard suggestions are currently rule-based, explainable guidance rather than model-generated predictions. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
 
 Run `npm install`, then `npm run dev`. Validate with `npm run typecheck`, `npm run test`, `npm run lint`, and `npm run build`.
