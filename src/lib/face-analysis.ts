@@ -1,5 +1,3 @@
-import type { FaceLandmarkerResult } from '@mediapipe/tasks-vision';
-
 export const FACE_SHAPES = ['Oval', 'Round', 'Square', 'Heart', 'Oblong', 'Diamond'] as const;
 export type FaceShape = (typeof FACE_SHAPES)[number];
 
@@ -14,7 +12,7 @@ export type FaceAnalysis = {
   };
 };
 
-export type FaceLandmarkFaceLandmarkPoint = { x: number; y: number; z?: number };
+export type FaceLandmarkPoint = { x: number; y: number; z?: number };
 
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
@@ -94,7 +92,7 @@ export async function analyzeFaceShape(image: HTMLImageElement): Promise<FaceAna
   });
 
   try {
-    const result: FaceLandmarkerResult = landmarker.detect(image);
+    const result = landmarker.detect(image);
     const faces = result.faceLandmarks ?? [];
     if (faces.length === 0) {
       throw new Error('No face found. Use a well-lit, front-facing portrait with your face clearly visible.');
