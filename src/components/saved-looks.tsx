@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- saved images use per-user Cloudinary URLs. */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Heart, LoaderCircle, Scissors, Trash2 } from 'lucide-react';
 
@@ -21,22 +21,22 @@ export function SavedLooks({ userName }: { userName: string }) {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState('');
 
-  const loadLooks = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await fetch('/api/looks', { cache: 'no-store' });
-      const data = await response.json() as { looks?: Look[]; error?: string };
-      if (!response.ok) throw new Error(data.error || 'Could not load your saved looks.');
-      setLooks(data.looks ?? []);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not load your saved looks.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    let active = true;
+    fetch('/api/looks', { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json() as { looks?: Look[]; error?: string };
+        if (!response.ok) throw new Error(data.error || 'Could not load your saved looks.');
+        if (active) setLooks(data.looks ?? []);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : 'Could not load your saved looks.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
-
-  useEffect(() => { void loadLooks(); }, [loadLooks]);
 
   async function toggleFavorite(look: Look) {
     setBusyId(look.id);
