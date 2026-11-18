@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 const REPLICATE_API = 'https://api.replicate.com/v1';
 const MAX_IMAGE_BYTES = 240_000;
-const PREDICTION_ID_PATTERN = /^[a-z0-9]{20,40}$/i;
+const PREDICTION_ID_PATTERN = /^[a-z0-9]{20,40}$/i;\nconst recentRequests = new Map<string, number[]>();\n\nfunction isRateLimited(request: Request): boolean {\n  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();\n  const key = request.headers.get('x-real-ip') || forwarded || 'unknown';\n  const now = Date.now();\n  const recent = (recentRequests.get(key) ?? []).filter((timestamp) => now - timestamp < 10 * 60 * 1000);\n  if (recent.length >= 3) return true;\n  recent.push(now);\n  recentRequests.set(key, recent);\n  if (recentRequests.size > 500) {\n    for (const [entry, timestamps] of recentRequests) {\n      if (timestamps.every((timestamp) => now - timestamp >= 10 * 60 * 1000)) recentRequests.delete(entry);\n    }\n  }\n  return false;\n}
 
 type ReplicatePrediction = {
   id?: string;
