@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Check, ImagePlus, RefreshCw, ShieldCheck, Sparkles, UploadCloud, X } from 'lucide-react';
+import { ArrowRight, ImagePlus, ShieldCheck, UploadCloud, X } from 'lucide-react';
 
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
