@@ -22,7 +22,12 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!session?.user?.id) return errorResponse('Please sign in to update saved looks.', 401);
 
   const { id } = await context.params;
-  const look = await getOwnedLook(id, session.user.id);
+  let look;
+  try {
+    look = await getOwnedLook(id, session.user.id);
+  } catch {
+    return errorResponse('Saved looks are temporarily unavailable.', 503);
+  }
   if (!look) return errorResponse('Saved look not found.', 404);
 
   let body: unknown;
