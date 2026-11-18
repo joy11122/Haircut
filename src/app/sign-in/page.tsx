@@ -8,7 +8,10 @@ import { Suspense } from 'react';
 
 function SignInContent() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl')?.startsWith('/') ? searchParams.get('callbackUrl')! : '/looks';
+  const requestedCallback = searchParams.get('callbackUrl') || '/looks';
+  const callbackUrl = requestedCallback.startsWith('/') && !requestedCallback.startsWith('//') && !requestedCallback.includes('\\\\')
+    ? requestedCallback
+    : '/looks';
 
   return <main className="container flex min-h-[calc(100vh-76px)] items-center justify-center py-16">
     <section className="soft-card w-full max-w-[460px] p-7 text-center sm:p-10">
