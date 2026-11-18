@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
+import { auth } from '../../../../auth';
 import { buildHairstylePrompt } from '@/lib/ai-hairstyle';
+import {
+  checkSharedRateLimit,
+  createGenerationEvent,
+  findOwnedGenerationEvent,
+  reserveDailyGeneration,
+  updateGenerationEvent,
+} from '@/lib/usage-controls';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -14,8 +23,8 @@ type ReplicatePrediction = {
   error?: string | null;
 };
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+function jsonError(message: string, status: number, headers?: HeadersInit) {
+  return NextResponse.json({ error: message }, { status, headers });
 }
 
 function safeOutput(output: ReplicatePrediction['output']): string | null {
@@ -30,8 +39,20 @@ function safeOutput(output: ReplicatePrediction['output']): string | null {
 }
 
 export async function POST(request: Request) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return jsonError('Sign in to generate and track your AI hairstyle previews.', 401);
+
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return jsonError('AI hairstyle preview is not configured yet. Add REPLICATE_API_TOKEN to the server environment.', 503);
+
+  const rate = await checkSharedRateLimit(userId);
+  if (!rate.allowed) {
+    if (!rate.configured) return jsonError('AI generation is temporarily unavailable because shared rate limiting is not configured.', 503);
+    return jsonError('You are generating previews too quickly. Please wait before trying again.', 429, {
+      'Retry-After': String(Math.max(1, rate.resetInSeconds)),
+    });
+  }
 
   const contentLength = Number(request.headers.get('content-length') || 0);
   if (contentLength > 380_000) return jsonError('The optimized portrait request is too large.', 413);
@@ -61,6 +82,26 @@ export async function POST(request: Request) {
     return jsonError('The optimized portrait must be smaller than 240 KB. Please choose another photo.', 413);
   }
 
+  let usage;
+  try {
+    usage = await reserveDailyGeneration(userId);
+  } catch {
+    return jsonError('Usage controls are temporarily unavailable. Please try again later.', 503);
+  }
+  if (!usage.allowed) {
+    return jsonError(`You have used all ${usage.limit} free AI previews for today. Try again tomorrow.`, 429, {
+      'X-AI-Usage-Limit': String(usage.limit),
+      'X-AI-Usage-Remaining': '0',
+    });
+  }
+
+  let eventId: ObjectId;
+  try {
+    eventId = await createGenerationEvent(userId);
+  } catch {
+    return jsonError('Could not record this generation request. Please try again.', 503);
+  }
+
   try {
     const response = await fetch(`${REPLICATE_API}/models/google/gemini-2.5-flash-image/predictions`, {
       method: 'POST',
@@ -82,6 +123,7 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
+      await updateGenerationEvent(eventId, { status: 'failed' }).catch(() => undefined);
       if (response.status === 429) return jsonError('The AI provider is busy. Please wait a moment and try again.', 429);
       if (response.status === 401 || response.status === 403) {
         return jsonError('The AI provider rejected the server credentials. Check REPLICATE_API_TOKEN.', 503);
@@ -91,27 +133,46 @@ export async function POST(request: Request) {
 
     const prediction = (await response.json()) as ReplicatePrediction;
     if (!prediction.id || !PREDICTION_ID_PATTERN.test(prediction.id)) {
+      await updateGenerationEvent(eventId, { status: 'failed' }).catch(() => undefined);
       return jsonError('The AI provider returned an invalid prediction response.', 502);
     }
 
+    await updateGenerationEvent(eventId, { status: 'submitted', predictionId: prediction.id });
     return NextResponse.json({
       id: prediction.id,
       status: prediction.status ?? 'starting',
       imageUrl: prediction.status === 'succeeded' ? safeOutput(prediction.output) : null,
-    }, { status: 202 });
+      usage: { used: usage.used, limit: usage.limit, remaining: usage.remaining },
+    }, { status: 202, headers: { 'Cache-Control': 'no-store' } });
   } catch {
+    await updateGenerationEvent(eventId, { status: 'failed' }).catch(() => undefined);
     return jsonError('Could not reach the AI image provider. Please try again.', 502);
   }
 }
 
 export async function GET(request: Request) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return jsonError('Sign in to check your AI hairstyle preview.', 401);
+
   const token = process.env.REPLICATE_API_TOKEN;
   if (!token) return jsonError('AI hairstyle preview is not configured.', 503);
 
   const id = new URL(request.url).searchParams.get('id');
   if (!id || !PREDICTION_ID_PATTERN.test(id)) return jsonError('A valid prediction ID is required.', 400);
 
+  const rate = await checkSharedRateLimit(userId, 60);
+  if (!rate.allowed) {
+    if (!rate.configured) return jsonError('AI preview status is temporarily unavailable because shared rate limiting is not configured.', 503);
+    return jsonError('Too many status checks. Please wait a moment.', 429, {
+      'Retry-After': String(Math.max(1, rate.resetInSeconds)),
+    });
+  }
+
   try {
+    const event = await findOwnedGenerationEvent(userId, id);
+    if (!event) return jsonError('This hairstyle preview could not be found.', 404);
+
     const response = await fetch(`${REPLICATE_API}/predictions/${encodeURIComponent(id)}`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
