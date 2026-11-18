@@ -37,7 +37,7 @@ export async function getSavedLooksCollection() {
 
 export async function deleteCloudinaryImage(publicId: string) {
   if (!isStorageConfigured()) throw new Error('Image storage is not configured.');
-  const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image', invalidate: true });
+  const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image', type: 'authenticated', invalidate: true });
   if (result.result !== 'ok' && result.result !== 'not found') {
     throw new Error('Could not remove the saved image from storage.');
   }
