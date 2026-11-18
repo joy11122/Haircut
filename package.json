@@ -21,7 +21,7 @@
     "@auth/mongodb-adapter": "^3.10.0",
     "mongodb": "^6.12.0",
     "cloudinary": "^2.5.1",
-    "zod": "^3.24.1"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
