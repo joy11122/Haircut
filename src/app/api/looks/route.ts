@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
 import { auth } from '../../../../auth';
 import { AI_HAIRSTYLES } from '@/lib/ai-hairstyle';
 import { getSavedLooksCollection, isStorageConfigured, storeGeneratedImage } from '@/lib/saved-looks';
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
 
     const stored = await storeGeneratedImage(parsed.data.imageUrl, style.id);
     const saved = {
+      _id: new ObjectId(),
       userId: session.user.id,
       styleId: style.id,
       styleName: style.name,
