@@ -101,7 +101,7 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
-      URL.revokeObjectURL(objectUrl);
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
     } catch {
       setError('Could not download the image. You can open the result in a new tab instead.');
     }
@@ -121,7 +121,7 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
       <div className="mt-6 grid gap-5 lg:grid-cols-[.85fr_1.15fr]">
         <div className="rounded-[4px] border border-[#E5E2D9] bg-white p-5">
           <label htmlFor="ai-hairstyle-choice" className="eyebrow">Choose your haircut</label>
-          <select id="ai-hairstyle-choice" value={styleId} onChange={(event) => setStyleId(event.target.value as AiHairstyleId)} disabled={busy} className="mt-3 min-h-12 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
+          <select id="ai-hairstyle-choice" value={styleId} onChange={(event) => { setStyleId(event.target.value as AiHairstyleId); setResultUrl(null); setState('idle'); setError(''); }} disabled={busy} className="mt-3 min-h-12 w-full rounded border border-[#D5D6CC] bg-white px-3 text-[12px] text-[#20231F] focus:border-[#68745B] focus:outline-none focus:ring-2 focus:ring-[#68745B]/20">
             {AI_HAIRSTYLES.map((style) => <option key={style.id} value={style.id}>{style.name}</option>)}
           </select>
           <p className="mt-3 text-[11px] leading-5 text-[#77796F]">{selected.name} · AI will preserve your face and change the hairstyle only, as closely as the model allows.</p>
