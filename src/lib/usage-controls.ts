@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { getDatabase } from '@/lib/mongodb';
+import { getDatabase } from './mongodb';
 
 const DAILY_FREE_GENERATIONS = 3;
 const RATE_LIMIT_WINDOW_SECONDS = 600;
