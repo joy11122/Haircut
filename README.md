@@ -21,7 +21,7 @@ An AI-assisted personal grooming experience that helps people explore hairstyles
 - Interactive, browser-only hairstyle silhouette preview with five selectable looks and adjustable size, placement, and opacity. This is an illustrative overlay, not a photorealistic AI hairstyle transfer.
 - Consent-based photorealistic hairstyle editing through the server-side Replicate API using Google Gemini 2.5 Flash Image, with eight allowlisted styles, identity-preservation instructions, async status polling, result preview, and download.
 - AI image requests are made only after a separate consent checkbox; the original photo is resized and compressed locally before being sent as a temporary data URL. The app does not persist the portrait.
-- AI provider tokens remain server-side in `REPLICATE_API_TOKEN`; the API rejects arbitrary prompts, unsupported styles, invalid image types, oversized image payloads, and untrusted output URLs. A per-instance burst guard is included, but a shared distributed rate limiter and authenticated quotas are still required before a public paid launch.
+- AI provider tokens remain server-side in `REPLICATE_API_TOKEN`; the API rejects arbitrary prompts, unsupported styles, invalid image types, oversized image payloads, and untrusted output URLs. A shared distributed rate limiter and authenticated quotas are still required before a public paid launch.
 - Face-shape analysis still runs in the browser; AI hairstyle generation is a separate opt-in provider request.
 - Google sign-in with Auth.js and database-backed sessions.
 - Private saved-look library with favorites, history, per-user access checks, a 50-look limit, and image deletion.
