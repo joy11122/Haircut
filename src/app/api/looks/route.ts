@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '../../../../../auth';
+import { auth } from '../../../../auth';
 import { AI_HAIRSTYLES } from '@/lib/ai-hairstyle';
 import { getSavedLooksCollection, isStorageConfigured, storeGeneratedImage } from '@/lib/saved-looks';
 
