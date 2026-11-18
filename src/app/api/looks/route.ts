@@ -1,15 +1,10 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { auth } from '../../../../auth';
 import { AI_HAIRSTYLES } from '@/lib/ai-hairstyle';
 import { getSavedLooksCollection, isStorageConfigured, storeGeneratedImage } from '@/lib/saved-looks';
+import { saveLookSchema } from '@/lib/saved-look-validation';
 
 export const runtime = 'nodejs';
-
-const saveSchema = z.object({
-  styleId: z.string().min(1).max(64),
-  imageUrl: z.string().url().max(2048),
-});
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -51,7 +46,7 @@ export async function POST(request: Request) {
     return errorResponse('Invalid request body.', 400);
   }
 
-  const parsed = saveSchema.safeParse(body);
+  const parsed = saveLookSchema.safeParse(body);
   if (!parsed.success) return errorResponse('Choose a valid hairstyle and generated image.', 400);
 
   const style = AI_HAIRSTYLES.find((item) => item.id === parsed.data.styleId);
