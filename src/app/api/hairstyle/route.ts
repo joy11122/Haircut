@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 const REPLICATE_API = 'https://api.replicate.com/v1';
-const MAX_IMAGE_BYTES = 1_000_000;
+const MAX_IMAGE_BYTES = 240_000;
 const PREDICTION_ID_PATTERN = /^[a-z0-9]{20,40}$/i;
 
 type ReplicatePrediction = {
@@ -24,7 +24,7 @@ function safeOutput(output: ReplicatePrediction['output']): string | null {
   if (typeof candidate !== 'string') return null;
   try {
     const url = new URL(candidate);
-    return url.protocol === 'https:' && url.hostname.endsWith('replicate.delivery') ? url.toString() : null;
+    return url.protocol === 'https:' && (url.hostname === 'replicate.delivery' || url.hostname.endsWith('.replicate.delivery')) ? url.toString() : null;
   } catch {
     return null;
   }
