@@ -10,6 +10,16 @@ An AI-assisted personal grooming experience that helps people explore hairstyles
 - Virtual try-on workflow designed to preserve the user's identity.
 - Responsive, accessible experience with secure server-side AI integrations.
 
+## Current capabilities
+
+- Premium, responsive landing experience and grooming-style showcase.
+- Local photo selection, preview, drag-and-drop, MIME and file-size validation.
+- On-device face landmark detection with MediaPipe Tasks Vision.
+- Explainable heuristic face-shape classification (oval, round, square, heart, oblong, diamond), confidence indicator, and user correction.
+- Face analysis runs in the browser; the portrait is not sent to the application server.
+
 ## Development
 
-The repository is being initialized in phases. The first phase establishes the product UI, responsive design system, upload flow, and safe integration boundaries. Production AI providers, persistence, authentication, and deployment secrets must be configured and verified before enabling live analysis or image generation.
+The product is being delivered in phases. AI hairstyle recommendations, beard recommendations, virtual try-on, authentication, saved looks, and production image storage are separate upcoming phases. The face-shape output is an approximate style aid, not a medical or biometric identity assessment.
+
+Run `npm install`, then `npm run dev`. Validate with `npm run typecheck`, `npm run test`, `npm run lint`, and `npm run build`.
