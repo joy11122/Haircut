@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   const base64 = match[2];
   const imageBytes = Math.floor((base64.length * 3) / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
   if (imageBytes < 1 || imageBytes > MAX_IMAGE_BYTES) {
-    return jsonError('The optimized portrait must be smaller than 1 MB. Please choose another photo.', 413);
+    return jsonError('The optimized portrait must be smaller than 240 KB. Please choose another photo.', 413);
   }
 
   try {
