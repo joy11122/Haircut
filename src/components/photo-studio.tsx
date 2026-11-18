@@ -6,6 +6,7 @@ import {
   UploadCloud, X,
 } from 'lucide-react';
 import { analyzeFaceShape, FACE_SHAPES, type FaceAnalysis, type FaceShape } from '@/lib/face-analysis';
+import { VirtualTryOn } from '@/components/virtual-try-on';
 import {
   BEARD_PREFERENCES, HAIR_LENGTHS, HAIR_TEXTURES, MAINTENANCE_LEVELS, STYLE_VIBES,
   getStyleRecommendations,
@@ -252,6 +253,7 @@ export function PhotoStudio() {
               </section>
             )}
 
+          {preview && recommendations && <VirtualTryOn imageUrl={preview} />}
         </div>
       </div>
     </div>
