@@ -28,6 +28,9 @@ function ratio(numerator: number, denominator: number): number {
 }
 
 export function classifyFaceLandmarks(points: FaceLandmarkPoint[]): FaceAnalysis {
+  if (!Array.isArray(points) || points.length < 455) {
+    throw new Error('The face landmarks were incomplete. Please try another photo.');
+  }
   // MediaPipe Face Mesh landmark positions: forehead, chin, cheekbones,
   // temples and jaw corners. Ratios are approximate visual heuristics.
   const foreheadWidth = distance(points[127], points[356]);
