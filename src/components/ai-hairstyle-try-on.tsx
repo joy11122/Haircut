@@ -2,13 +2,14 @@
 
 /* eslint-disable @next/next/no-img-element -- local blob and temporary provider output URLs are rendered directly. */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertCircle, Bookmark, Download, LoaderCircle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { AI_HAIRSTYLES, type AiHairstyleId } from '@/lib/ai-hairstyle';
 
 type Props = { imageUrl: string };
 type PreviewState = 'idle' | 'preparing' | 'generating' | 'polling' | 'done' | 'error';
+type Usage = { used: number; limit: number; remaining: number; day: string };
 
 async function optimizePortrait(imageUrl: string): Promise<string> {
   const response = await fetch(imageUrl);
@@ -44,6 +45,20 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [signInRequired, setSignInRequired] = useState(false);
+  const [usage, setUsage] = useState<Usage | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch('/api/usage', { cache: 'no-store' })
+      .then(async (response) => {
+        const data = await response.json() as Usage & { error?: string };
+        if (!active) return;
+        if (response.status === 401) setSignInRequired(true);
+        else if (response.ok) setUsage(data);
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, []);
 
   const selected = AI_HAIRSTYLES.find((style) => style.id === styleId) ?? AI_HAIRSTYLES[0];
   const busy = state === 'preparing' || state === 'generating' || state === 'polling';
@@ -65,7 +80,9 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image, styleId, consent: true }),
       });
-      const started = await startResponse.json() as { id?: string; status?: string; imageUrl?: string | null; error?: string };
+      const started = await startResponse.json() as { id?: string; status?: string; imageUrl?: string | null; error?: string; usage?: Usage };
+      if (startResponse.status === 401) setSignInRequired(true);
+      if (started.usage) setUsage(started.usage);
       if (!startResponse.ok || !started.id) throw new Error(started.error || 'Could not start the AI preview.');
 
       if (started.imageUrl) {
@@ -167,7 +184,15 @@ export function AiHairstyleTryOn({ imageUrl }: Props) {
           <button type="button" onClick={generate} disabled={!consent || busy} className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-40">
             {busy ? <><LoaderCircle size={15} className="animate-spin"/>{state === 'preparing' ? 'Preparing photo…' : state === 'generating' ? 'Starting AI…' : 'Creating your look…'}</> : <><Sparkles size={15}/> Generate realistic preview</>}
           </button>
-          <p className="mt-3 text-[10px] leading-5 text-[#92938B]">Each generation has a provider charge. Do not generate unless you are happy to proceed. The app does not store your original portrait.</p>
+          {signInRequired ? (
+            <div className="mt-4 rounded border border-[#E5E2D9] bg-[#F8F7F3] p-3 text-[10px] leading-5 text-[#77796F]">
+              Sign in to use your daily AI preview allowance.
+              <Link href="/sign-in?callbackUrl=%2F" className="ml-2 font-semibold text-[#68745B] underline underline-offset-4">Sign in with Google</Link>
+            </div>
+          ) : usage ? (
+            <p className="mt-3 text-[10px] font-medium text-[#68745B]" aria-live="polite">{usage.remaining} of {usage.limit} free AI previews remaining today (UTC).</p>
+          ) : null}
+          <p className="mt-3 text-[10px] leading-5 text-[#92938B]">Free accounts receive three AI previews per UTC day. Additional paid usage is not enabled. The app does not store your original portrait.</p>
           {error && <p role="alert" className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-red-700"><AlertCircle size={14} className="mt-0.5 shrink-0"/>{error}</p>}
         </div>
 
