@@ -139,6 +139,13 @@ export async function POST(request: Request) {
 
     const finalStatus = prediction.status === 'succeeded' ? 'completed' : prediction.status === 'failed' || prediction.status === 'canceled' ? 'failed' : 'submitted';
     await updateGenerationEvent(eventId, { status: finalStatus, predictionId: prediction.id });
+    if (prediction.status === 'failed' || prediction.status === 'canceled') {
+      return jsonError('The AI could not complete this hairstyle preview. Please try another photo or style.', 502);
+    }
+    if (prediction.status === 'succeeded' && !safeOutput(prediction.output)) {
+      await updateGenerationEvent(eventId, { status: 'failed' });
+      return jsonError('The AI provider did not return a valid image.', 502);
+    }
     return NextResponse.json({
       id: prediction.id,
       status: prediction.status ?? 'starting',
