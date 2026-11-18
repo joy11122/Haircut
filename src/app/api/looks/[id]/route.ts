@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
-import { auth } from '../../../../../../auth';
+import { auth } from '../../../../../auth';
 import { deleteCloudinaryImage, getSavedLooksCollection } from '@/lib/saved-looks';
 
 type RouteContext = { params: Promise<{ id: string }> };
