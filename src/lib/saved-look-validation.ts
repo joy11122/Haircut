@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AI_HAIRSTYLES } from '@/lib/ai-hairstyle';
+import { AI_HAIRSTYLES } from './ai-hairstyle';
 
 const supportedStyleIds = AI_HAIRSTYLES.map((style) => style.id) as [string, ...string[]];
 
