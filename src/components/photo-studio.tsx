@@ -23,6 +23,7 @@ export function PhotoStudio() {
   const [analysis, setAnalysis] = useState<FaceAnalysis | null>(null);
   const [selectedShape, setSelectedShape] = useState<FaceShape | ''>('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isImageReady, setIsImageReady] = useState(false);
 
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
@@ -32,6 +33,7 @@ export function PhotoStudio() {
     setError('');
     setAnalysis(null);
     setSelectedShape('');
+    setIsImageReady(false);
     if (!file) return;
     if (!ACCEPTED_TYPES.includes(file.type)) {
       setError('Please choose a JPG, PNG or WebP image.');
@@ -57,13 +59,14 @@ export function PhotoStudio() {
     setStage('idle');
     setAnalysis(null);
     setSelectedShape('');
+    setIsImageReady(false);
     setError('');
     setConsent(false);
     if (inputRef.current) inputRef.current.value = '';
   }
 
   async function runAnalysis() {
-    if (!imageRef.current || !preview || !consent) return;
+    if (!imageRef.current || !preview || !consent || !isImageReady) return;
     setError('');
     setStage('analyzing');
     try {
@@ -110,7 +113,7 @@ export function PhotoStudio() {
               <div className="relative w-full">
                 {/* A blob URL is intentionally rendered locally; it is not a remote image source. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img ref={imageRef} src={preview} alt="Your uploaded portrait preview" onLoad={() => setError('')} className="mx-auto max-h-[320px] max-w-full rounded object-contain"/>
+                <img ref={imageRef} src={preview} alt="Your uploaded portrait preview" onLoad={() => { setIsImageReady(true); setError(''); }} onError={() => { setIsImageReady(false); setError('This image could not be previewed. Please choose another photo.'); }} className="mx-auto max-h-[320px] max-w-full rounded object-contain"/>
                 <button onClick={reset} type="button" aria-label="Remove uploaded photo" className="absolute right-1 top-1 grid h-9 w-9 place-items-center rounded-full bg-[#20231F] text-white"><X size={16}/></button>
                 <p className="mt-3 truncate text-[11px] text-[#77796F]">{fileName}</p>
                 <button type="button" onClick={() => inputRef.current?.click()} className="mt-2 text-[11px] font-semibold text-[#68745B] underline underline-offset-4">Choose a different photo</button>
@@ -129,7 +132,7 @@ export function PhotoStudio() {
             <input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} className="mt-1 h-4 w-4 accent-[#68745B]"/>
             <span>I agree to analyze this photo locally in my browser. It will not be uploaded for face-shape analysis.</span>
           </label>
-          <button type="button" disabled={!preview || !consent || stage === 'analyzing'} onClick={runAnalysis} className="btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-40">
+          <button type="button" disabled={!preview || !consent || !isImageReady || stage === 'analyzing'} onClick={runAnalysis} className="btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-40">
             {stage === 'analyzing' ? <><LoaderCircle size={15} className="animate-spin"/> Reading facial landmarks…</> : <>{stage === 'analyzed' ? 'Analyze again' : 'Analyze my face shape'} <ArrowRight size={15}/></>}
           </button>
           <p className="mt-3 text-center text-[10px] text-[#9A9B93]">Best results: one front-facing face, even lighting, no heavy filters.</p>
